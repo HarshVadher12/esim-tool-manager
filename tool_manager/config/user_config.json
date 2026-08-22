@@ -1,0 +1,10 @@
+{
+  "install_root": "~/.esim/tools",
+  "preferred_manager": {
+    "linux": "apt",
+    "darwin": "brew",
+    "windows": "choco"
+  },
+  "auto_confirm": false,
+  "esim_env_file": "~/.esim/env.sh"
+}

@@ -1,0 +1,6 @@
+# Runtime: no third-party dependencies -- the tool manager itself uses only
+# the Python standard library (argparse, subprocess, json, logging, re).
+# This keeps the manager installable with nothing but a stock Python 3.10+.
+
+# Development / testing only:
+pytest>=7.0

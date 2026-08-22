@@ -1,0 +1,180 @@
+{
+  "ngspice": {
+    "description": "Mixed-level/mixed-signal circuit simulator used by eSim for SPICE simulation",
+    "required_version": "38.2",
+    "check_command": "ngspice -v",
+    "version_regex": "ngspice-([0-9]+(\\.[0-9]+)*)",
+    "dependency_of": "eSim core",
+    "linux": {
+      "manager": "apt",
+      "package": "ngspice",
+      "install_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "ngspice"
+      ],
+      "update_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "--only-upgrade",
+        "ngspice"
+      ]
+    },
+    "darwin": {
+      "manager": "brew",
+      "package": "ngspice",
+      "install_cmd": [
+        "brew",
+        "install",
+        "ngspice"
+      ],
+      "update_cmd": [
+        "brew",
+        "upgrade",
+        "ngspice"
+      ]
+    },
+    "windows": {
+      "manager": "choco",
+      "package": "ngspice",
+      "install_cmd": [
+        "choco",
+        "install",
+        "ngspice",
+        "-y"
+      ],
+      "update_cmd": [
+        "choco",
+        "upgrade",
+        "ngspice",
+        "-y"
+      ]
+    },
+    "dependencies": [
+      "libx11-dev",
+      "libxaw7-dev",
+      "bison",
+      "flex"
+    ],
+    "binary": "ngspice"
+  },
+  "kicad": {
+    "description": "Open-source PCB design and schematic capture tool integrated with eSim",
+    "required_version": "7.0",
+    "check_command": "kicad-cli version",
+    "version_regex": "([0-9]+\\.[0-9]+(\\.[0-9]+)?)",
+    "dependency_of": "eSim PCB module",
+    "linux": {
+      "manager": "apt",
+      "package": "kicad",
+      "install_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "kicad"
+      ],
+      "update_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "--only-upgrade",
+        "kicad"
+      ]
+    },
+    "darwin": {
+      "manager": "brew",
+      "package": "kicad",
+      "install_cmd": [
+        "brew",
+        "install",
+        "--cask",
+        "kicad"
+      ],
+      "update_cmd": [
+        "brew",
+        "upgrade",
+        "--cask",
+        "kicad"
+      ]
+    },
+    "windows": {
+      "manager": "choco",
+      "package": "kicad",
+      "install_cmd": [
+        "choco",
+        "install",
+        "kicad",
+        "-y"
+      ],
+      "update_cmd": [
+        "choco",
+        "upgrade",
+        "kicad",
+        "-y"
+      ]
+    },
+    "dependencies": [
+      "python3",
+      "wxwidgets"
+    ],
+    "binary": "kicad-cli"
+  },
+  "ngveri": {
+    "description": "GHDL - open-source VHDL simulator used for mixed-signal / digital simulation in eSim",
+    "required_version": "1.0",
+    "check_command": "ghdl --version",
+    "version_regex": "GHDL ([0-9]+(\\.[0-9]+)*)",
+    "dependency_of": "eSim VHDL module",
+    "linux": {
+      "manager": "apt",
+      "package": "ghdl",
+      "install_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "ghdl"
+      ],
+      "update_cmd": [
+        "apt-get",
+        "install",
+        "-y",
+        "--only-upgrade",
+        "ghdl"
+      ]
+    },
+    "darwin": {
+      "manager": "brew",
+      "package": "ghdl",
+      "install_cmd": [
+        "brew",
+        "install",
+        "ghdl"
+      ],
+      "update_cmd": [
+        "brew",
+        "upgrade",
+        "ghdl"
+      ]
+    },
+    "windows": {
+      "manager": "choco",
+      "package": "ghdl",
+      "install_cmd": [
+        "choco",
+        "install",
+        "ghdl",
+        "-y"
+      ],
+      "update_cmd": [
+        "choco",
+        "upgrade",
+        "ghdl",
+        "-y"
+      ]
+    },
+    "dependencies": [],
+    "binary": "ghdl"
+  }
+}
