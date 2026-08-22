@@ -3,7 +3,7 @@
     "description": "Mixed-level/mixed-signal circuit simulator used by eSim for SPICE simulation",
     "required_version": "38.2",
     "check_command": "ngspice -v",
-    "version_regex": "ngspice-([0-9]+(\\.[0-9]+)*)",
+    "version_regex": "ngspice-(\\d+(?:\\.\\d+)+)",
     "dependency_of": "eSim core",
     "linux": {
       "manager": "apt",

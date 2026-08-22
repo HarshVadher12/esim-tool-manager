@@ -17,7 +17,7 @@ Covers Requirement 1 (Tool Installation Management):
 import json
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from tool_manager.utils.system_utils import (
     get_os,
@@ -61,26 +61,25 @@ class ToolInstaller:
 
     def get_tool_meta(self, tool_name: str) -> dict:
         if tool_name not in self.registry:
-            raise KeyError(f"Unknown tool '{tool_name}'. Known tools: {self.list_tools()}")
+            raise KeyError(
+                f"Unknown tool '{tool_name}'. Known tools: {self.list_tools()}"
+            )
         return self.registry[tool_name]
 
     # ---------- version detection ----------
 
     def get_installed_version(self, tool_name: str) -> str | None:
         """
-        Runs the tool's check_command (e.g. 'ngspice -v') and extracts the
-        version number using the tool's version_regex. Returns None if the
-        tool isn't installed or the version can't be parsed.
+        Runs the tool's check_command and extracts the installed version.
 
-        Some Windows GUI tools (e.g. ngspice.exe) don't behave like a
-        well-mannered CLI when run with a version flag -- they can pop up
-        a dialog and block waiting for interaction, which would hang or
-        time out a subprocess call. For those cases, a tool's per-OS
-        block in the registry can declare a "version_check_override" with
-        its own "command" and "regex" -- typically querying the package
-        manager itself (e.g. `choco list --local-only <pkg>`) instead of
-        executing the GUI binary.
+        A tool may define a per-OS version_check_override in the registry.
+        If present, that command and regex are used instead of the default
+        check_command and version_regex.
+
+        Returns None if the tool is not installed or the version cannot
+        be determined.
         """
+
         meta = self.get_tool_meta(tool_name)
         platform_meta = meta.get(self.os_key, {})
         override = platform_meta.get("version_check_override")
@@ -94,20 +93,78 @@ class ToolInstaller:
 
         result = run_command(check_cmd, timeout=15)
 
-        # Some tools print version info to stderr instead of stdout
-        combined_output = (result.stdout + "\n" + result.stderr).strip()
+        # Some tools print version information to stderr instead of stdout.
+        combined_output = (
+            (result.stdout or "") + "\n" + (result.stderr or "")
+        ).strip()
 
+        # 127 is commonly used by shells to indicate command not found.
         if result.returncode == 127 or not combined_output:
-            return None  # binary/package not found
+            return None
 
-        match = re.search(version_regex, combined_output)
-        if match:
-            return match.group(1)
+        # First try the registry-defined regex.
+        try:
+            match = re.search(
+                version_regex,
+                combined_output,
+                re.IGNORECASE,
+            )
+
+            if match:
+                # The registry regex is expected to contain a capture group.
+                if match.lastindex:
+                    return match.group(1)
+
+                # If no capture group exists, return the complete match.
+                return match.group(0)
+
+        except re.error as exc:
+            logger.warning(
+                f"[{tool_name}] Invalid version regex '{version_regex}': {exc}"
+            )
+
+        # ------------------------------------------------------------------
+        # Fallback handling
+        # ------------------------------------------------------------------
+        # ngspice commonly reports its version in this form:
+        #
+        #     ngspice-38.2 : Circuit level simulation program
+        #
+        # Some registry versions may contain a regex intended for a
+        # different ngspice output format. Handle the standard ngspice
+        # format here so version detection remains reliable.
+        # ------------------------------------------------------------------
+
+        if tool_name.lower() == "ngspice":
+            ngspice_match = re.search(
+                r"\bngspice[-\s]?(\d+(?:\.\d+)+)",
+                combined_output,
+                re.IGNORECASE,
+            )
+
+            if ngspice_match:
+                return ngspice_match.group(1)
+
+        # Generic fallback for a simple version number such as:
+        #
+        #     version 1.2.3
+        #     v1.2.3
+        #
+        generic_match = re.search(
+            r"\bv?(\d+(?:\.\d+)+)\b",
+            combined_output,
+            re.IGNORECASE,
+        )
+
+        if generic_match:
+            return generic_match.group(1)
+
         return None
 
     def is_up_to_date(self, installed: str | None, required: str) -> bool:
         if installed is None:
             return False
+
         return self._version_tuple(installed) >= self._version_tuple(required)
 
     @staticmethod
@@ -119,6 +176,7 @@ class ToolInstaller:
 
     def check_status(self, tool_name: str) -> ToolStatus:
         meta = self.get_tool_meta(tool_name)
+
         installed_version = self.get_installed_version(tool_name)
         required_version = meta.get("required_version")
 
@@ -127,14 +185,16 @@ class ToolInstaller:
             installed=installed_version is not None,
             installed_version=installed_version,
             required_version=required_version,
-            up_to_date=self.is_up_to_date(installed_version, required_version)
-            if installed_version
-            else False,
+            up_to_date=(
+                self.is_up_to_date(installed_version, required_version)
+                if installed_version
+                else False
+            ),
             description=meta.get("description", ""),
         )
 
     def check_all(self) -> list:
-        return [self.check_status(t) for t in self.list_tools()]
+        return [self.check_status(tool) for tool in self.list_tools()]
 
     # ---------- installation ----------
 
@@ -146,18 +206,23 @@ class ToolInstaller:
     def _with_privilege_escalation(cmd: list) -> list:
         """
         On Linux/macOS, apt/brew-style installs typically need root.
-        If we're already root (e.g. inside a container), running 'sudo'
-        would fail since it may not even be installed -- so only
-        prepend 'sudo' when we're a non-root user and sudo exists.
+
+        If we're already root, do not use sudo.
+        Otherwise, prepend sudo for apt/apt-get when sudo is available.
         """
+
         if os.name != "posix":
             return cmd
+
         if hasattr(os, "geteuid") and os.geteuid() == 0:
-            return cmd  # already root, no sudo needed
+            return cmd
+
         if cmd and cmd[0] in ("apt-get", "apt"):
             from tool_manager.utils.system_utils import which
+
             if which("sudo"):
                 return ["sudo"] + cmd
+
         return cmd
 
     def install(self, tool_name: str, dry_run: bool = False) -> bool:
@@ -165,10 +230,13 @@ class ToolInstaller:
         Installs a tool using the appropriate package manager for the
         current OS. Returns True on success.
         """
+
         meta = self.get_tool_meta(tool_name)
 
         if not self.is_platform_supported(tool_name):
-            logger.error(f"[{tool_name}] No install recipe for OS '{self.os_key}'.")
+            logger.error(
+                f"[{tool_name}] No install recipe for OS '{self.os_key}'."
+            )
             return False
 
         platform_meta = meta[self.os_key]
@@ -182,21 +250,38 @@ class ToolInstaller:
             return False
 
         already = self.get_installed_version(tool_name)
+
         if already:
-            logger.info(f"[{tool_name}] Already installed (version {already}). Skipping install.")
+            logger.info(
+                f"[{tool_name}] Already installed "
+                f"(version {already}). Skipping install."
+            )
             return True
 
-        cmd = self._with_privilege_escalation(platform_meta["install_cmd"])
-        logger.info(f"[{tool_name}] Installing via {manager}: {' '.join(cmd)}")
+        cmd = self._with_privilege_escalation(
+            platform_meta["install_cmd"]
+        )
+
+        logger.info(
+            f"[{tool_name}] Installing via {manager}: {' '.join(cmd)}"
+        )
 
         if dry_run:
-            logger.info(f"[{tool_name}] (dry-run) Would run: {' '.join(cmd)}")
+            logger.info(
+                f"[{tool_name}] (dry-run) Would run: {' '.join(cmd)}"
+            )
             return True
 
         result = run_command(cmd, timeout=900)
+
         if result.ok:
-            logger.info(f"[{tool_name}] Installed successfully.")
+            logger.info(
+                f"[{tool_name}] Installed successfully."
+            )
             return True
-        else:
-            logger.error(f"[{tool_name}] Install failed: {result.stderr or result.stdout}")
-            return False
+
+        logger.error(
+            f"[{tool_name}] Install failed: "
+            f"{result.stderr or result.stdout}"
+        )
+        return False
