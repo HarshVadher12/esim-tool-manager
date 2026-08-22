@@ -71,18 +71,36 @@ class ToolInstaller:
         Runs the tool's check_command (e.g. 'ngspice -v') and extracts the
         version number using the tool's version_regex. Returns None if the
         tool isn't installed or the version can't be parsed.
+
+        Some Windows GUI tools (e.g. ngspice.exe) don't behave like a
+        well-mannered CLI when run with a version flag -- they can pop up
+        a dialog and block waiting for interaction, which would hang or
+        time out a subprocess call. For those cases, a tool's per-OS
+        block in the registry can declare a "version_check_override" with
+        its own "command" and "regex" -- typically querying the package
+        manager itself (e.g. `choco list --local-only <pkg>`) instead of
+        executing the GUI binary.
         """
         meta = self.get_tool_meta(tool_name)
-        check_cmd = meta["check_command"].split()
+        platform_meta = meta.get(self.os_key, {})
+        override = platform_meta.get("version_check_override")
+
+        if override:
+            check_cmd = override["command"]
+            version_regex = override["regex"]
+        else:
+            check_cmd = meta["check_command"].split()
+            version_regex = meta["version_regex"]
+
         result = run_command(check_cmd, timeout=15)
 
         # Some tools print version info to stderr instead of stdout
         combined_output = (result.stdout + "\n" + result.stderr).strip()
 
         if result.returncode == 127 or not combined_output:
-            return None  # binary not found
+            return None  # binary/package not found
 
-        match = re.search(meta["version_regex"], combined_output)
+        match = re.search(version_regex, combined_output)
         if match:
             return match.group(1)
         return None

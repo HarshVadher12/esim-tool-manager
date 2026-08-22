@@ -8,56 +8,26 @@
     "linux": {
       "manager": "apt",
       "package": "ngspice",
-      "install_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "ngspice"
-      ],
-      "update_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "--only-upgrade",
-        "ngspice"
-      ]
+      "install_cmd": ["apt-get", "install", "-y", "ngspice"],
+      "update_cmd": ["apt-get", "install", "-y", "--only-upgrade", "ngspice"]
     },
     "darwin": {
       "manager": "brew",
       "package": "ngspice",
-      "install_cmd": [
-        "brew",
-        "install",
-        "ngspice"
-      ],
-      "update_cmd": [
-        "brew",
-        "upgrade",
-        "ngspice"
-      ]
+      "install_cmd": ["brew", "install", "ngspice"],
+      "update_cmd": ["brew", "upgrade", "ngspice"]
     },
     "windows": {
       "manager": "choco",
       "package": "ngspice",
-      "install_cmd": [
-        "choco",
-        "install",
-        "ngspice",
-        "-y"
-      ],
-      "update_cmd": [
-        "choco",
-        "upgrade",
-        "ngspice",
-        "-y"
-      ]
+      "install_cmd": ["choco", "install", "ngspice", "-y"],
+      "update_cmd": ["choco", "upgrade", "ngspice", "-y"],
+      "version_check_override": {
+        "command": ["choco", "list", "ngspice"],
+        "regex": "ngspice\\s+([0-9]+(\\.[0-9]+)*)"
+      }
     },
-    "dependencies": [
-      "libx11-dev",
-      "libxaw7-dev",
-      "bison",
-      "flex"
-    ],
+    "dependencies": ["libx11-dev", "libxaw7-dev", "bison", "flex"],
     "binary": "ngspice"
   },
   "kicad": {
@@ -69,56 +39,26 @@
     "linux": {
       "manager": "apt",
       "package": "kicad",
-      "install_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "kicad"
-      ],
-      "update_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "--only-upgrade",
-        "kicad"
-      ]
+      "install_cmd": ["apt-get", "install", "-y", "kicad"],
+      "update_cmd": ["apt-get", "install", "-y", "--only-upgrade", "kicad"]
     },
     "darwin": {
       "manager": "brew",
       "package": "kicad",
-      "install_cmd": [
-        "brew",
-        "install",
-        "--cask",
-        "kicad"
-      ],
-      "update_cmd": [
-        "brew",
-        "upgrade",
-        "--cask",
-        "kicad"
-      ]
+      "install_cmd": ["brew", "install", "--cask", "kicad"],
+      "update_cmd": ["brew", "upgrade", "--cask", "kicad"]
     },
     "windows": {
       "manager": "choco",
       "package": "kicad",
-      "install_cmd": [
-        "choco",
-        "install",
-        "kicad",
-        "-y"
-      ],
-      "update_cmd": [
-        "choco",
-        "upgrade",
-        "kicad",
-        "-y"
-      ]
+      "install_cmd": ["choco", "install", "kicad", "-y"],
+      "update_cmd": ["choco", "upgrade", "kicad", "-y"],
+      "version_check_override": {
+        "command": ["choco", "list", "kicad"],
+        "regex": "kicad\\s+([0-9]+(\\.[0-9]+)*)"
+      }
     },
-    "dependencies": [
-      "python3",
-      "wxwidgets"
-    ],
+    "dependencies": ["python3", "wxwidgets"],
     "binary": "kicad-cli"
   },
   "ngveri": {
@@ -130,49 +70,24 @@
     "linux": {
       "manager": "apt",
       "package": "ghdl",
-      "install_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "ghdl"
-      ],
-      "update_cmd": [
-        "apt-get",
-        "install",
-        "-y",
-        "--only-upgrade",
-        "ghdl"
-      ]
+      "install_cmd": ["apt-get", "install", "-y", "ghdl"],
+      "update_cmd": ["apt-get", "install", "-y", "--only-upgrade", "ghdl"]
     },
     "darwin": {
       "manager": "brew",
       "package": "ghdl",
-      "install_cmd": [
-        "brew",
-        "install",
-        "ghdl"
-      ],
-      "update_cmd": [
-        "brew",
-        "upgrade",
-        "ghdl"
-      ]
+      "install_cmd": ["brew", "install", "ghdl"],
+      "update_cmd": ["brew", "upgrade", "ghdl"]
     },
     "windows": {
       "manager": "choco",
       "package": "ghdl",
-      "install_cmd": [
-        "choco",
-        "install",
-        "ghdl",
-        "-y"
-      ],
-      "update_cmd": [
-        "choco",
-        "upgrade",
-        "ghdl",
-        "-y"
-      ]
+      "install_cmd": ["choco", "install", "ghdl", "-y"],
+      "update_cmd": ["choco", "upgrade", "ghdl", "-y"],
+      "version_check_override": {
+        "command": ["choco", "list", "ghdl"],
+        "regex": "ghdl\\s+([0-9]+(\\.[0-9]+)*)"
+      }
     },
     "dependencies": [],
     "binary": "ghdl"
